@@ -5,7 +5,7 @@ import pytz
 import schedule
 from telegram import Bot
 
-# ====== الإعدادات ======
+# ====== إعدادات ======
 TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
 CHANNEL_ID = os.getenv("CHANNEL_ID")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
@@ -35,7 +35,7 @@ def send_post(with_link=False):
         
         bot.send_message(chat_id=CHANNEL_ID, text=text)
         print("✅ Posted:", text)
-    
+
     except Exception as e:
         print("❌ Error:", e)
 
@@ -47,9 +47,10 @@ schedule.every().day.at("19:00").do(send_post)
 schedule.every().day.at("22:00").do(send_post)
 schedule.every().day.at("00:00").do(lambda: send_post(with_link=True))
 
-print("🚀 البوت شغال وناطر المواعيد")
+print("🚀 البوت شغال 24/7")
 
-# ====== حل المشكلة هنا 🔥 ======
+# ====== حل نهائي 🔥 ======
 while True:
     schedule.run_pending()
-    time.sleep(10)
+    print("⏳ waiting...")
+    time.sleep(15)
