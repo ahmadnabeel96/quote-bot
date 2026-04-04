@@ -3,12 +3,9 @@ import time
 import openai
 import pytz
 import schedule
-from datetime import datetime
 from telegram import Bot
 
-# =========================
-# إعدادات
-# =========================
+# ====== الإعدادات ======
 TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
 CHANNEL_ID = os.getenv("CHANNEL_ID")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
@@ -16,14 +13,9 @@ OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 bot = Bot(token=TELEGRAM_TOKEN)
 openai.api_key = OPENAI_API_KEY
 
-# توقيت الأردن
-jordan_tz = pytz.timezone("Asia/Amman")
-
-# =========================
-# توليد نص
-# =========================
+# ====== توليد نص ======
 def generate_post():
-    prompt = "اكتب اقتباس عربي قصير جدًا، مؤثر، viral، سطرين فقط مع ايموجي بسيط"
+    prompt = "اكتب اقتباس عربي قصير جدًا، سطرين فقط، مؤثر جدًا مع ايموجي"
     
     response = openai.ChatCompletion.create(
         model="gpt-4o-mini",
@@ -33,25 +25,21 @@ def generate_post():
     
     return response.choices[0].message.content.strip()
 
-# =========================
-# إرسال منشور
-# =========================
+# ====== إرسال ======
 def send_post(with_link=False):
     try:
         text = generate_post()
-
+        
         if with_link:
             text += "\n\n✨ انضم: https://t.me/Quote0me"
-
+        
         bot.send_message(chat_id=CHANNEL_ID, text=text)
         print("✅ Posted:", text)
-
+    
     except Exception as e:
         print("❌ Error:", e)
 
-# =========================
-# جدولة النشر
-# =========================
+# ====== جدولة ======
 schedule.every().day.at("10:00").do(send_post)
 schedule.every().day.at("13:00").do(send_post)
 schedule.every().day.at("16:00").do(send_post)
@@ -59,11 +47,9 @@ schedule.every().day.at("19:00").do(send_post)
 schedule.every().day.at("22:00").do(send_post)
 schedule.every().day.at("00:00").do(lambda: send_post(with_link=True))
 
-print("🚀 البوت شغال بتوقيت الأردن")
+print("🚀 البوت شغال وناطر المواعيد")
 
-# =========================
-# تشغيل مستمر
-# =========================
+# ====== حل المشكلة هنا 🔥 ======
 while True:
     schedule.run_pending()
-    time.sleep(30)
+    time.sleep(10)
