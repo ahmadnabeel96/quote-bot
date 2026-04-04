@@ -5,7 +5,7 @@ from flask import Flask
 from telegram import Bot
 from openai import OpenAI
 
-app = Flask(__name__)
+app = Flask(**name**)
 
 @app.route('/')
 def home():
