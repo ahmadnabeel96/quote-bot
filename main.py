@@ -1,11 +1,23 @@
 import os
 import time
 import openai
-import pytz
-import schedule
 from telegram import Bot
+from flask import Flask
+import threading
 
-# ====== إعدادات ======
+# ===== Web Server =====
+app = Flask(__name__)
+
+@app.route('/')
+def home():
+    return "Bot is running"
+
+def run_web():
+    app.run(host="0.0.0.0", port=8080)
+
+threading.Thread(target=run_web).start()
+
+# ===== Config =====
 TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
 CHANNEL_ID = os.getenv("CHANNEL_ID")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
@@ -13,44 +25,28 @@ OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 bot = Bot(token=TELEGRAM_TOKEN)
 openai.api_key = OPENAI_API_KEY
 
-# ====== توليد نص ======
+# ===== Generate =====
 def generate_post():
-    prompt = "اكتب اقتباس عربي قصير جدًا، سطرين فقط، مؤثر جدًا مع ايموجي"
-    
     response = openai.ChatCompletion.create(
         model="gpt-4o-mini",
-        messages=[{"role": "user", "content": prompt}],
-        max_tokens=100
+        messages=[{"role": "user", "content": "اكتب اقتباس قصير جميل مع ايموجي ✨"}],
     )
-    
-    return response.choices[0].message.content.strip()
+    return response.choices[0].message.content
 
-# ====== إرسال ======
-def send_post(with_link=False):
-    try:
-        text = generate_post()
-        
-        if with_link:
-            text += "\n\n✨ انضم: https://t.me/Quote0me"
-        
-        bot.send_message(chat_id=CHANNEL_ID, text=text)
-        print("✅ Posted:", text)
+# ===== Send =====
+def send_post():
+    text = generate_post()
+    bot.send_message(chat_id=CHANNEL_ID, text=text)
+    print("✅ Posted:", text)
 
-    except Exception as e:
-        print("❌ Error:", e)
+# ===== Test Run =====
+print("🚀 البوت رح ينشر بعد دقيقة...")
 
-# ====== جدولة ======
-schedule.every().day.at("10:00").do(send_post)
-schedule.every().day.at("13:00").do(send_post)
-schedule.every().day.at("16:00").do(send_post)
-schedule.every().day.at("19:00").do(send_post)
-schedule.every().day.at("22:00").do(send_post)
-schedule.every().day.at("00:00").do(lambda: send_post(with_link=True))
+time.sleep(60)
 
-print("🚀 البوت شغال 24/7")
+send_post()
 
-# ====== حل نهائي 🔥 ======
+# خليه شغال
 while True:
-    schedule.run_pending()
     print("⏳ waiting...")
-    time.sleep(15)
+    time.sleep(30)
