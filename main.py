@@ -1,48 +1,53 @@
-import os
 import time
-import threading
-from flask import Flask
 from telegram import Bot
-from openai import OpenAI
+from datetime import datetime
+import pytz
+import random
+import os
 
-app = Flask(__name__)
+TOKEN = os.getenv("TELEGRAM_TOKEN")
+CHANNEL_ID = "@Quote0me"
 
-@app.route('/')
-def home():
-    return "Bot is running 🚀"
+bot = Bot(token=TOKEN)
 
-def run_web():
-    app.run(host="0.0.0.0", port=8080)
+# توقيت الأردن
+timezone = pytz.timezone("Asia/Amman")
 
-threading.Thread(target=run_web).start()
+# أوقات النشر
+schedule_times = ["10:00", "13:00", "16:00", "19:00", "22:00", "00:00"]
 
-TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
-CHANNEL_ID = os.getenv("CHANNEL_ID")
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+# اقتباسات
+quotes = [
+    "الإصرار هو مفتاح النجاح ✨",
+    "لا تيأس، فالأجمل لم يأتِ بعد 💙",
+    "كل يوم هو فرصة جديدة 🌿",
+    "كن سبباً في سعادة من حولك ❤️",
+    "ثق بنفسك دائماً 💪",
+    "الأحلام لا تتحقق إلا بالسعي 🔥"
+]
 
-bot = Bot(token=TELEGRAM_TOKEN)
-client = OpenAI(api_key=OPENAI_API_KEY)
+last_sent = None
 
-def generate_post():
-    response = client.chat.completions.create(
-        model="gpt-4o-mini",
-        messages=[
-            {"role": "user", "content": "اكتب اقتباس قصير قوي جداً مع ايموجي ✨"}
-        ],
-    )
-    return response.choices[0].message.content
-
-def send_post(text):
-    bot.send_message(chat_id=CHANNEL_ID, text=text)
-
-print("🚀 البوت شغال")
+print("🚀 البوت شغال بنظام الجدولة")
 
 while True:
-    try:
-        text = generate_post()
-        send_post(text)
-        print("✅ Posted:", text)
-        time.sleep(60)
-    except Exception as e:
-        print("❌ Error:", e)
-        time.sleep(10)
+    now = datetime.now(timezone)
+    current_time = now.strftime("%H:%M")
+
+    if current_time in schedule_times and current_time != last_sent:
+        quote = random.choice(quotes)
+
+        message = f"""✨ {quote}
+
+💭 اقتباسات يومية
+📌 تابعنا: https://t.me/Quote0me
+❤️ لا تنسى التفاعل"""
+
+        try:
+            bot.send_message(chat_id=CHANNEL_ID, text=message)
+            print(f"✅ Posted at {current_time}")
+            last_sent = current_time
+        except Exception as e:
+            print("❌ Error:", e)
+
+    time.sleep(30)
