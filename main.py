@@ -7,7 +7,7 @@ from openai import OpenAI
 
 # ===== Web Server =====
 
-app = Flask(**name**)
+app = Flask(__name__)
 
 @app.route('/')
 def home():
