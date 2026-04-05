@@ -4,18 +4,15 @@ from datetime import datetime
 import pytz
 from telegram import Bot
 
-# 🔑 المتغيرات (من Railway)
 TOKEN = os.getenv("BOT_TOKEN")
 CHANNEL = os.getenv("CHANNEL_USERNAME")
 
-# 🛑 تحقق
 if not TOKEN or not CHANNEL:
-    print("❌ تأكد من BOT_TOKEN و CHANNEL_USERNAME")
-    exit()
+    print("❌ Missing TOKEN or CHANNEL")
+    while True:
+        time.sleep(60)
 
 bot = Bot(token=TOKEN)
-
-# 🇯🇴 توقيت الأردن
 tz = pytz.timezone("Asia/Amman")
 
 quotes = [
@@ -38,7 +35,7 @@ schedule = [
 last_post_time = None
 post_index = 0
 
-print("🚀 Bot started...")
+print("🚀 Bot is running 24/7...")
 
 while True:
     try:
