@@ -1,26 +1,28 @@
 import os
 import time
+import threading
 from datetime import datetime
 import pytz
 from telegram import Bot
 from flask import Flask
 
+# 🔐 البيانات (من Variables)
 TOKEN = os.getenv("BOT_TOKEN")
 CHANNEL = os.getenv("CHANNEL_USERNAME")
 
-print("TOKEN:", TOKEN)
-print("CHANNEL:", CHANNEL)
-
 bot = Bot(token=TOKEN)
 
+# 🌐 Flask
 app = Flask(__name__)
 
 @app.route("/")
 def home():
     return "Bot is alive 🚀"
 
+# 🇯🇴 توقيت الأردن
 tz = pytz.timezone("Asia/Amman")
 
+# 💬 عبارات
 quotes = [
     "✨ لا تيأس فالله معك دائمًا ❤️",
     "🌙 اذكر الله يطمئن قلبك 🤍",
@@ -29,6 +31,7 @@ quotes = [
     "🌿 توكّل على الله فهو حسبك ❤️"
 ]
 
+# ⏰ جدول النشر (نفس القديم)
 schedule = [
     (9, 0),
     (12, 0),
@@ -41,6 +44,7 @@ schedule = [
 last_post = None
 index = 0
 
+# 🤖 البوت
 def run_bot():
     global last_post, index
 
@@ -55,6 +59,7 @@ def run_bot():
                     key = f"{h}:{m}"
 
                     if last_post != key:
+
                         if index < 5:
                             text = quotes[index]
                         else:
@@ -77,10 +82,16 @@ def run_bot():
             print("❌ ERROR:", e)
             time.sleep(10)
 
-# 🔥 أهم نقطة: نشغل البوت داخل Flask نفسه
-from threading import Thread
-Thread(target=run_bot).start()
+# 🔥 keep alive (مهم جدًا)
+def keep_alive():
+    while True:
+        print("💡 still alive...")
+        time.sleep(300)
 
-# 🚀 مهم جداً: PORT من Railway
+# 🚀 تشغيل
+threading.Thread(target=run_bot).start()
+threading.Thread(target=keep_alive).start()
+
+# 🌐 تشغيل السيرفر
 port = int(os.environ.get("PORT", 8080))
-app.run(host="0.0.0.0", port=port)
+app.run(host="0.0.0.0", port=port, debug=False, use_reloader=False)
