@@ -4,24 +4,21 @@ from datetime import datetime
 import pytz
 from telegram import Bot
 from flask import Flask
-import threading
 
 TOKEN = os.getenv("BOT_TOKEN")
 CHANNEL = os.getenv("CHANNEL_USERNAME")
 
+print("TOKEN:", TOKEN)
+print("CHANNEL:", CHANNEL)
+
 bot = Bot(token=TOKEN)
 
-# 🌐 Flask (حتى Railway ما يطفيه)
 app = Flask(__name__)
 
 @app.route("/")
 def home():
-    return "Bot is running 🚀"
+    return "Bot is alive 🚀"
 
-def run_web():
-    app.run(host="0.0.0.0", port=8080)
-
-# 🇯🇴 توقيت الأردن
 tz = pytz.timezone("Asia/Amman")
 
 quotes = [
@@ -41,50 +38,49 @@ schedule = [
     (0, 0)
 ]
 
-last_post_time = None
-post_index = 0
+last_post = None
+index = 0
 
-def bot_loop():
-    global last_post_time, post_index
+def run_bot():
+    global last_post, index
 
-    print("🚀 Bot running with Flask...")
+    print("🚀 BOT LOOP STARTED")
 
     while True:
         try:
             now = datetime.now(tz)
 
-            for hour, minute in schedule:
-                if now.hour == hour and now.minute == minute:
+            for h, m in schedule:
+                if now.hour == h and now.minute == m:
+                    key = f"{h}:{m}"
 
-                    current_time = f"{hour}:{minute}"
-
-                    if last_post_time != current_time:
-
-                        if post_index < 5:
-                            text = quotes[post_index]
+                    if last_post != key:
+                        if index < 5:
+                            text = quotes[index]
                         else:
-                            text = f"""✨ اقتباسات يومية 🤍
+                            text = f"""✨ اقتباسات يومية
 
-{quotes[post_index % len(quotes)]}
+{quotes[index % len(quotes)]}
 
-📌 تابعنا:
-https://t.me/{CHANNEL.replace('@','')}
-
-❤️ لا تنسَ التفاعل"""
+📌 https://t.me/{CHANNEL.replace('@','')}"""
 
                         bot.send_message(chat_id=CHANNEL, text=text)
 
-                        print("✅ Posted:", text)
+                        print("✅ Sent:", text)
 
-                        post_index = (post_index + 1) % 6
-                        last_post_time = current_time
+                        index = (index + 1) % 6
+                        last_post = key
 
             time.sleep(30)
 
         except Exception as e:
-            print("❌ Error:", e)
+            print("❌ ERROR:", e)
             time.sleep(10)
 
-# تشغيل البوت + السيرفر
-threading.Thread(target=bot_loop).start()
-run_web()
+# 🔥 أهم نقطة: نشغل البوت داخل Flask نفسه
+from threading import Thread
+Thread(target=run_bot).start()
+
+# 🚀 مهم جداً: PORT من Railway
+port = int(os.environ.get("PORT", 8080))
+app.run(host="0.0.0.0", port=port)
