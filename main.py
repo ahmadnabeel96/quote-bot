@@ -4,16 +4,17 @@ from datetime import datetime
 import pytz
 from telegram import Bot
 
-# 🔐 بيانات من Railway
 TOKEN = os.getenv("BOT_TOKEN")
 CHANNEL = os.getenv("CHANNEL_USERNAME")
 
+if not TOKEN or not CHANNEL:
+    print("❌ Missing TOKEN or CHANNEL")
+    exit()
+
 bot = Bot(token=TOKEN)
 
-# 🇯🇴 توقيت الأردن
 tz = pytz.timezone("Asia/Amman")
 
-# 💬 العبارات
 quotes = [
     "✨ لا تيأس فالله معك دائمًا ❤️",
     "🌙 اذكر الله يطمئن قلبك 🤍",
@@ -22,7 +23,6 @@ quotes = [
     "🌿 توكّل على الله فهو حسبك ❤️"
 ]
 
-# ⏰ أوقات النشر
 schedule = [
     (9, 0),
     (12, 0),
@@ -35,11 +35,14 @@ schedule = [
 last_post = None
 index = 0
 
-print("🚀 BOT STARTED 24/7")
+print("🚀 BOT RUNNING...")
 
 while True:
     try:
         now = datetime.now(tz)
+
+        # 🔥 heartbeat قوي (مهم)
+        print(f"💡 Alive at {now.strftime('%H:%M:%S')}")
 
         for h, m in schedule:
             if now.hour == h and now.minute == m:
@@ -63,8 +66,8 @@ while True:
                     index = (index + 1) % 6
                     last_post = key
 
-        time.sleep(30)
+        time.sleep(10)  # ⬅️ قللناها (مهم)
 
     except Exception as e:
         print("❌ ERROR:", e)
-        time.sleep(10)
+        time.sleep(5)
