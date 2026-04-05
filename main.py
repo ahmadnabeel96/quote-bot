@@ -1,65 +1,77 @@
 import os
 import time
 from datetime import datetime
-from telegram import Bot
 import pytz
+from telegram import Bot
 
+# 🔑 المتغيرات (من Railway)
 TOKEN = os.getenv("BOT_TOKEN")
 CHANNEL = os.getenv("CHANNEL_USERNAME")
+
+# 🛑 تحقق
+if not TOKEN or not CHANNEL:
+    print("❌ تأكد من BOT_TOKEN و CHANNEL_USERNAME")
+    exit()
 
 bot = Bot(token=TOKEN)
 
 # 🇯🇴 توقيت الأردن
-timezone = pytz.timezone("Asia/Amman")
+tz = pytz.timezone("Asia/Amman")
 
 quotes = [
     "✨ لا تيأس فالله معك دائمًا ❤️",
-    "🌙 اذكرِ الله يطمئنُ قلبك 🤍",
+    "🌙 اذكر الله يطمئن قلبك 🤍",
     "🤍 كن قريبًا من الله تجد السلام 🌿",
     "💫 لا تحزن إن الله معنا ✨",
     "🌿 توكّل على الله فهو حسبك ❤️"
 ]
 
-post_count = 0
-last_minute = None
+schedule = [
+    (9, 0),
+    (12, 0),
+    (15, 0),
+    (18, 0),
+    (21, 0),
+    (0, 0)
+]
+
+last_post_time = None
+post_index = 0
+
+print("🚀 Bot started...")
 
 while True:
-    now = datetime.now(timezone)
+    try:
+        now = datetime.now(tz)
 
-    # ⏰ التوقيتات (عدّلها إذا بدك)
-    schedule = [
-        (9, 0),
-        (12, 0),
-        (15, 0),
-        (18, 0),
-        (21, 0),
-        (0, 0)
-    ]
+        for hour, minute in schedule:
+            if now.hour == hour and now.minute == minute:
 
-    for hour, minute in schedule:
-        if now.hour == hour and now.minute == minute:
-            if last_minute != now.minute:
+                current_time = f"{hour}:{minute}"
 
-                # 📌 أول 5 منشورات = عبارات
-                if post_count < 5:
-                    text = quotes[post_count % len(quotes)]
+                if last_post_time != current_time:
 
-                # 🔥 المنشور السادس = مع رابط
-                else:
-                    text = f"""✨ اقتباسات يومية 🤍
+                    if post_index < 5:
+                        text = quotes[post_index]
+                    else:
+                        text = f"""✨ اقتباسات يومية 🤍
 
-{quotes[post_count % len(quotes)]}
+{quotes[post_index % len(quotes)]}
 
 📌 تابعنا:
 https://t.me/{CHANNEL.replace('@','')}
 
 ❤️ لا تنسَ التفاعل"""
 
-                bot.send_message(chat_id=CHANNEL, text=text)
+                    bot.send_message(chat_id=CHANNEL, text=text)
 
-                print("Posted:", text)
+                    print("✅ Posted:", text)
 
-                post_count = (post_count + 1) % 6
-                last_minute = now.minute
+                    post_index = (post_index + 1) % 6
+                    last_post_time = current_time
 
-    time.sleep(30)
+        time.sleep(30)
+
+    except Exception as e:
+        print("❌ Error:", e)
+        time.sleep(10)
