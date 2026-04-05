@@ -4,13 +4,16 @@ from datetime import datetime
 import pytz
 from telegram import Bot
 
+# 🔐 بيانات من Railway
 TOKEN = os.getenv("BOT_TOKEN")
 CHANNEL = os.getenv("CHANNEL_USERNAME")
 
 bot = Bot(token=TOKEN)
 
+# 🇯🇴 توقيت الأردن
 tz = pytz.timezone("Asia/Amman")
 
+# 💬 العبارات
 quotes = [
     "✨ لا تيأس فالله معك دائمًا ❤️",
     "🌙 اذكر الله يطمئن قلبك 🤍",
@@ -19,6 +22,7 @@ quotes = [
     "🌿 توكّل على الله فهو حسبك ❤️"
 ]
 
+# ⏰ أوقات النشر
 schedule = [
     (9, 0),
     (12, 0),
