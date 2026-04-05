@@ -1,53 +1,65 @@
-import time
-from telegram import Bot
-from datetime import datetime
-import pytz
-import random
 import os
+import time
+from datetime import datetime
+from telegram import Bot
+import pytz
 
-TOKEN = os.getenv("TELEGRAM_TOKEN")
-CHANNEL_ID = "@Quote0me"
+TOKEN = os.getenv("BOT_TOKEN")
+CHANNEL = os.getenv("CHANNEL_USERNAME")
 
 bot = Bot(token=TOKEN)
 
-# توقيت الأردن
+# 🇯🇴 توقيت الأردن
 timezone = pytz.timezone("Asia/Amman")
 
-# أوقات النشر
-schedule_times = ["10:00", "13:00", "16:00", "19:00", "22:00", "00:00"]
-
-# اقتباسات
 quotes = [
-    "الإصرار هو مفتاح النجاح ✨",
-    "لا تيأس، فالأجمل لم يأتِ بعد 💙",
-    "كل يوم هو فرصة جديدة 🌿",
-    "كن سبباً في سعادة من حولك ❤️",
-    "ثق بنفسك دائماً 💪",
-    "الأحلام لا تتحقق إلا بالسعي 🔥"
+    "✨ لا تيأس فالله معك دائمًا ❤️",
+    "🌙 اذكرِ الله يطمئنُ قلبك 🤍",
+    "🤍 كن قريبًا من الله تجد السلام 🌿",
+    "💫 لا تحزن إن الله معنا ✨",
+    "🌿 توكّل على الله فهو حسبك ❤️"
 ]
 
-last_sent = None
-
-print("🚀 البوت شغال بنظام الجدولة")
+post_count = 0
+last_minute = None
 
 while True:
     now = datetime.now(timezone)
-    current_time = now.strftime("%H:%M")
 
-    if current_time in schedule_times and current_time != last_sent:
-        quote = random.choice(quotes)
+    # ⏰ التوقيتات (عدّلها إذا بدك)
+    schedule = [
+        (9, 0),
+        (12, 0),
+        (15, 0),
+        (18, 0),
+        (21, 0),
+        (0, 0)
+    ]
 
-        message = f"""✨ {quote}
+    for hour, minute in schedule:
+        if now.hour == hour and now.minute == minute:
+            if last_minute != now.minute:
 
-💭 اقتباسات يومية
-📌 تابعنا: https://t.me/Quote0me
-❤️ لا تنسى التفاعل"""
+                # 📌 أول 5 منشورات = عبارات
+                if post_count < 5:
+                    text = quotes[post_count % len(quotes)]
 
-        try:
-            bot.send_message(chat_id=CHANNEL_ID, text=message)
-            print(f"✅ Posted at {current_time}")
-            last_sent = current_time
-        except Exception as e:
-            print("❌ Error:", e)
+                # 🔥 المنشور السادس = مع رابط
+                else:
+                    text = f"""✨ اقتباسات يومية 🤍
+
+{quotes[post_count % len(quotes)]}
+
+📌 تابعنا:
+https://t.me/{CHANNEL.replace('@','')}
+
+❤️ لا تنسَ التفاعل"""
+
+                bot.send_message(chat_id=CHANNEL, text=text)
+
+                print("Posted:", text)
+
+                post_count = (post_count + 1) % 6
+                last_minute = now.minute
 
     time.sleep(30)
