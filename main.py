@@ -3,26 +3,20 @@ import time
 from datetime import datetime
 import pytz
 from telegram import Bot
+from openai import OpenAI
 
+# 🔐 بيانات
 TOKEN = os.getenv("BOT_TOKEN")
 CHANNEL = os.getenv("CHANNEL_USERNAME")
-
-if not TOKEN or not CHANNEL:
-    print("❌ Missing TOKEN or CHANNEL")
-    exit()
+OPENAI_KEY = os.getenv("OPENAI_API_KEY")
 
 bot = Bot(token=TOKEN)
+client = OpenAI(api_key=OPENAI_KEY)
 
+# 🇯🇴 توقيت الأردن
 tz = pytz.timezone("Asia/Amman")
 
-quotes = [
-    "✨ لا تيأس فالله معك دائمًا ❤️",
-    "🌙 اذكر الله يطمئن قلبك 🤍",
-    "🤍 كن قريبًا من الله تجد السلام 🌿",
-    "💫 لا تحزن إن الله معنا ✨",
-    "🌿 توكّل على الله فهو حسبك ❤️"
-]
-
+# ⏰ جدول
 schedule = [
     (9, 0),
     (12, 0),
@@ -33,16 +27,29 @@ schedule = [
 ]
 
 last_post = None
-index = 0
+count = 0
 
-print("🚀 BOT RUNNING...")
+# 🤖 توليد عبارة
+def generate_quote():
+    prompt = """
+اكتب اقتباس ديني قصير جداً:
+- سطر أو سطرين
+- مؤثر
+- مع ايموجي بسيط
+"""
+
+    response = client.chat.completions.create(
+        model="gpt-4o-mini",
+        messages=[{"role": "user", "content": prompt}]
+    )
+
+    return response.choices[0].message.content.strip()
+
+print("🚀 AI BOT STARTED")
 
 while True:
     try:
         now = datetime.now(tz)
-
-        # 🔥 heartbeat قوي (مهم)
-        print(f"💡 Alive at {now.strftime('%H:%M:%S')}")
 
         for h, m in schedule:
             if now.hour == h and now.minute == m:
@@ -50,24 +57,24 @@ while True:
 
                 if last_post != key:
 
-                    if index < 5:
-                        text = quotes[index]
-                    else:
-                        text = f"""✨ اقتباسات يومية
+                    text = generate_quote()
 
-{quotes[index % len(quotes)]}
+                    # 🔥 المنشور السادس مع رابط
+                    if count == 5:
+                        text += f"""
 
-📌 https://t.me/{CHANNEL.replace('@','')}"""
+📌 تابعنا:
+https://t.me/{CHANNEL.replace('@','')}"""
 
                     bot.send_message(chat_id=CHANNEL, text=text)
 
-                    print("✅ Sent:", text)
+                    print("✅ Posted:", text)
 
-                    index = (index + 1) % 6
+                    count = (count + 1) % 6
                     last_post = key
 
-        time.sleep(10)  # ⬅️ قللناها (مهم)
+        time.sleep(30)
 
     except Exception as e:
         print("❌ ERROR:", e)
-        time.sleep(5)
+        time.sleep(10)
